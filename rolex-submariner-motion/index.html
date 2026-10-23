@@ -583,10 +583,10 @@ const mix = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v,
 
 function planes(i, t, cam, Tg, k) {
   const st = STAGES[i];
-  const prevBg = i === 0 ? st.bg : STAGES[i - 1].bg;
-  let bg = mix(prevBg, st.bg, ease(t / 700));
-  if (i === 1) bg = mix(mix(prevBg, st.bg, ease(t / 700)).replace(/rgb\(|\)/g, '').split(',').reduce((a, v) => a + Math.round(+v).toString(16).padStart(2, '0'), '#'), '#06080c', ease((t - (st.dur - 320)) / 300));
-  bx.fillStyle = bg; bx.fillRect(0, 0, W, H);
+  // paper ends with the lights going out, so neon starts from black, not from paper
+  const prevBg = i === 0 ? st.bg : i === 2 ? st.bg : STAGES[i - 1].bg;
+  const lightsOut = i === 1 ? ease((t - (st.dur - 320)) / 300) : 0;
+  bx.fillStyle = mix(prevBg, st.bg, ease(t / 700)); bx.fillRect(0, 0, W, H);
   fx.clearRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
   // camera offsets: background drifts less than the hero, foreground more
@@ -606,12 +606,13 @@ function planes(i, t, cam, Tg, k) {
     bx.beginPath(); bx.moveTo(-R * 1.6 * g, 0); bx.lineTo(R * 1.6 * g, 0); bx.moveTo(0, -R * 2.2 * g); bx.lineTo(0, R * 2.2 * g); bx.stroke();
     bx.restore();
   } else if (look === 's-paper') {
-    bx.save(); bx.translate(cx + camX * .45 - cam.ry * H * .006, cy + camY * .45);
+    bx.save(); bx.globalAlpha = 1 - lightsOut; bx.translate(cx + camX * .45 - cam.ry * H * .006, cy + camY * .45);
     [[-.62, -.18, .34, '#b89c72'], [.66, .22, .42, '#bda37a'], [-.5, .42, .2, '#d3bb93'], [.55, -.4, .16, '#b2966b']].forEach(([x, y, r, c]) => {
       bx.shadowColor = 'rgba(40,25,8,.35)'; bx.shadowBlur = H * .02; bx.shadowOffsetY = H * .008;
       bx.fillStyle = c; bx.beginPath(); bx.arc(x * H, y * H, r * H, 0, 6.283); bx.fill();
     });
     bx.restore();
+    bx.fillStyle = `rgba(6,8,12,${lightsOut})`; bx.fillRect(0, 0, W, H);
   } else if (look === 's-neon') {
     bx.save(); bx.translate(cx + camX * .4, cy + H * .32 + camY * .3);
     const fl = ease(t / 900);
