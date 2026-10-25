@@ -1,0 +1,7 @@
+# Сессия браузера: cookies, токены, кэш. Хранится только локально.
+.session/
+# Результаты с личными данными
+tasks.json
+discovery_report.json
+__pycache__/
+.venv/
